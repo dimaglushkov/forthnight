@@ -100,9 +100,22 @@
     r@ + dup rot
     string-copy
     r> -
-    
+
     rot heap-free
     swap heap-free
 ;
 
-
+( a - b ) 
+: collatz-conj
+    dup . cr
+    repeat
+        dup 2 %
+        if
+            3 * 1 +
+        else
+            2 /
+        then
+        dup . cr
+        dup 1 =        
+    until
+;
