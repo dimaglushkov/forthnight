@@ -46,6 +46,7 @@
 ( a - b: {1 if prime, 0 otherwise} )
 : prime  
     dup 1 = if exit then
+    dup 2 = if exit then
     dup sqrt 
     1
     repeat
@@ -69,19 +70,39 @@
 ;
 
 
-( num mem_size - addr )
-: prime-store 
-    swap 
-    prime
-    swap
-
-    allot
-    dup rot swap 
-    !
-;
-
-( outputs last 2 stack elements )
+( Shows 2 stack elements. Does not pop them. )
 : .!
-    
+    dup2 . cr . cr
 ;
+
+
+( num - addr )
+: prime-store  
+    prime
+    1 allot
+    dup rot swap 
+    c!
+;
+
+
+( addr1 addr2 - res_addr )
+: concat
+    dup2
+    swap
+    ( a1 a2 - a1 a2 l1 l2 - a1 a2 l3 - a1 a2 a3 )
+    dup2 count swap count swap
+    + 1 + 
+    heap-alloc
+
+    ( a1 a2 a3 - a2 a3 a3 a1 [l1] - a3' a3' a2 [l1] - a3' [l1] - a3 )
+    dup rot dup count >r
+    string-copy
+    r@ + dup rot
+    string-copy
+    r> -
+    
+    rot heap-free
+    swap heap-free
+;
+
 
