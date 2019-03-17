@@ -1,5 +1,6 @@
-#Summary
+# Summary
 This repo stores source code of my 'System software' course project.
+
 <i>Source code for 'forthress' forth dialect can be found <a href="https://github.com/sayon/forthress"> here </a>.</i>
 
 # Part 1
