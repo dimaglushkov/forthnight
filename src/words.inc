@@ -1,17 +1,8 @@
-; ------------------------------------------------
-; Forthress 2, a Forth dialect
-;
-; This file stores other predefined words required 
-; by an interpreter
-; An outer interpreter is written in Forthress,
-; see the word `interpret-fd`
-; Check README.md in the root directory for
-; word semantics
-;
-; Author: igorjirkov@gmail.com
-; Date  : 08-03-201t
-;
-; ------------------------------------------------
+native ".", dot
+    pop rdi
+    call print_int
+    call print_newline 
+    jmp next
 
 native ".S", show_stack
     mov rcx, rsp
@@ -25,6 +16,7 @@ native ".S", show_stack
         pop rcx
         add rcx, 8
         jmp .loop
+
 
 section .rodata
 msg:
@@ -395,4 +387,6 @@ colon "trap", trap
     dq xt_lit, wh_trap + 9, xt_print_string, xt_print_cr, xt_exit
 
 forth_init:
-  dq xt_lit, 0, xt_forth_interpret_fd, xt_bye
+    dq xt_lit, 0, xt_forth_interpret_fd, xt_bye
+
+
