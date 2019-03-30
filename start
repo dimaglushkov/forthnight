@@ -1,1 +1,3 @@
 cat stdlib.frt - | ./bin/forthress
+
+

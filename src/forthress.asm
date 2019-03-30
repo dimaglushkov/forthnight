@@ -44,7 +44,7 @@ _start:
     mov [stack_start], rsp
 
     ;;  push to stack to set up initial stack state
-    mov pc, program
+    mov pc, forth_init
 
 next:                  
     mov w, pc
