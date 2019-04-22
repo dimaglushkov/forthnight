@@ -4,6 +4,7 @@
 extern string_length
 extern print_newline
 extern print_char
+extern print_tab
 extern print_string
 extern print_uint
 extern print_int

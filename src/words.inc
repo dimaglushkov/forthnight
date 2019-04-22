@@ -1,19 +1,25 @@
 native ".", dot
-    pop rdi
-    call print_int
-    call print_newline 
+	push rdi
+	call print_tab
+	pop rdi
+	pop rdi
+	call print_int
+	call print_newline
     jmp next
 
 native ".S", show_stack
-    mov rcx, rsp
-    .loop:
-        cmp rcx, [stack_start] 
-        jae next
-        mov rdi, [rcx]
-        push rcx
-        call print_int
-        call print_newline
-        pop rcx
+	mov rcx, rsp
+	.loop:
+        cmp rcx, [stack_start]
+		jae next
+		mov rdi, [rcx]
+		push rcx
+     	push rdi
+		call print_tab
+		pop rdi
+		call print_int
+		call print_newline
+		pop rcx
         add rcx, 8
         jmp .loop
 
@@ -308,7 +314,7 @@ colon "string-parse-number", string_parse_number
   branch0 .error
   dq xt_inc, xt_exit
 .unsigned:
-  dq xt_drop, xt_string_parse_unsigned_number, xt_exit 
+  dq xt_drop, xt_string_parse_unsigned_number, xt_exit
 .error:
   dq xt_drop, xt_lit, 0, xt_exit
 
