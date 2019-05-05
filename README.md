@@ -1,7 +1,16 @@
-# Summary
-This repo stores source code of my 'System software' course project.
+```
+███████╗ ██████╗ ██████╗ ████████╗██╗  ██╗███╗   ██╗██╗ ██████╗ ██╗  ██╗████████╗
+██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝██║  ██║████╗  ██║██║██╔════╝ ██║  ██║╚══██╔══╝
+█████╗  ██║   ██║██████╔╝   ██║   ███████║██╔██╗ ██║██║██║  ███╗███████║   ██║   
+██╔══╝  ██║   ██║██╔══██╗   ██║   ██╔══██║██║╚██╗██║██║██║   ██║██╔══██║   ██║   
+██║     ╚██████╔╝██║  ██║   ██║   ██║  ██║██║ ╚████║██║╚██████╔╝██║  ██║   ██║   
+╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   
+```                                                                                                                                                     
+                                                                                                                                                                
+**ForthNight is a simple forth dialect for a real memesters.**
 
-<i>Source code for 'forthress' forth dialect can be found <a href="https://github.com/sayon/forthress"> here </a>.</i>
+Created as a part of 'System-software' course in ITMO University, which was created by [Igor Jirkov](https://github.com/sayon/) and this exact version was inspired by his [forthress dialect](https://github.com/sayon/forthress).
+
 
 # Part 1
 Includes some forth-words implementations, such as 
