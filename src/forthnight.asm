@@ -22,7 +22,7 @@ resq 1023
 rstack_start: resq 1   
 ; return stack start
 user_mem: resq 65536
-
+input_buffer: resb 1024 
 
 section .data
 last_word: dq _last_word 

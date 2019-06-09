@@ -266,6 +266,7 @@ const "forth-last-word", last_word
 const "forth-is-compiling", state
 const "forth-input-fd", fd
 const "forth-stack-start", stack_start
+const "forth-inbuf", input_buffer
 
 %define sys_read_no 0
 %define sys_write_no 1
@@ -431,7 +432,7 @@ colon "'", forth_tick, 1
     dq xt_exit
   .no_word:
     dq xt_lit, msg.no_such_word, xt_print_string, xt_print_string, xt_print_cr, xt_exit
-    .eof:
+  .eof:
     dq xt_drop, xt_exit
 
 colon "forth-cfa", forth_cfa
