@@ -1,28 +1,18 @@
-# ------------------------------------------------
-# ForthrIM, a Forthress dialect improve
-#
-# Author: igorjirkov@gmail.com
-# Improves by ddimaglushkov@ya.ru
-#
-# ------------------------------------------------
+ASMFLAGS = -felf64 -g -Isrc/
 
-ASM         = nasm
-ASMFLAGS    = -felf64 -g -Isrc/
-LINKER      = ld
+all: bin/forthnight
 
-all: bin/forthress
-
-bin/forthress: obj/forthress.o obj/util.o
+bin/forthnight: obj/forthnight.o obj/utilities.o
 	mkdir -p bin
-	$(LINKER) -o bin/forthress  $(LINKERFLAGS) -o bin/forthress obj/forthress.o obj/util.o $(LIBS)
+	ld -o bin/forthnight -o bin/forthnight obj/forthnight.o obj/utilities.o
 
-obj/forthress.o: src/forthress.asm src/macro.inc src/words.inc src/util.inc
+obj/forthnight.o: src/forthnight.asm src/macro.inc src/words.inc src/utilities.inc
 	mkdir -p obj
-	$(ASM) $(ASMFLAGS) src/forthress.asm -o obj/forthress.o
+	nasm $(ASMFLAGS) src/forthnight.asm -o obj/forthnight.o
 
-obj/util.o: src/util.inc src/util.asm
+obj/utilities.o: src/utilities.inc src/utilities.asm
 	mkdir -p obj
-	$(ASM) $(ASMFLAGS) src/util.asm -o obj/util.o
+	nasm $(ASMFLAGS) src/utilities.asm -o obj/utilities.o
 
 clean:
 	rm -rf bin obj

@@ -16,7 +16,9 @@ global in_fd
 section .data
 in_fd: dq 0
 
+
 section .text
+
 string_length:
     xor rax, rax
 .loop:
@@ -27,8 +29,11 @@ string_length:
 .end:
     ret
 
+
 print_newline:
     mov rdi, 10
+
+
 print_char:
     push rdi
     mov rdi, rsp
@@ -40,6 +45,7 @@ print_char:
 print_tab:
 	mov rdi, 9
 	jmp print_char
+
 
 print_string:
     push rdi
@@ -83,7 +89,7 @@ print_int:
     neg rdi
     jmp print_uint
 
-; returns rax: number, rdx : length
+
 parse_int:
     mov al, byte [rdi]
     cmp al, '-'
@@ -101,7 +107,7 @@ parse_int:
     xor rax, rax
     ret
 
-; returns rax: number, rdx : length
+
 parse_uint:
     mov r8, 10
     xor rax, rax
@@ -122,6 +128,7 @@ parse_uint:
     mov rdx, rcx
     ret
 
+
 string_equals:
     mov al, byte [rdi]
     cmp al, byte [rsi]
@@ -136,6 +143,7 @@ string_equals:
     xor rax, rax
     ret
 
+
 read_char:
     push 0
     xor rax, rax
@@ -146,7 +154,6 @@ read_char:
     pop rax
     ret
 
-section .text
 
 read_word:
     push r14
@@ -196,6 +203,7 @@ read_word:
     mov rdx, r14
     pop r14
     ret
+
 
 string_copy:
     mov dl, byte[rdi]

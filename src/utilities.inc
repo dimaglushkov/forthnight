@@ -1,5 +1,5 @@
-%ifndef _UTIL_
-%define _UTIL_
+%ifndef _UTILITIES
+%define _UTILITIES
 
 extern string_length
 extern print_newline
