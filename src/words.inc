@@ -1,7 +1,9 @@
+; ( a -- )
 native "drop", drop
     add rsp, 8
     jmp next
 
+; ( a b -- b a )
 native "swap", swap
     pop rax
     pop rdx
@@ -9,15 +11,25 @@ native "swap", swap
     push rdx
     jmp next
 
+; ( a -- a a )
 native "dup", dup
     push qword [rsp]
     jmp next
 
+; Arithmetic
+; ( a b -- [a + b] )
 native "+", plus
     pop rax
     add [rsp], rax
     jmp next
 
+; ( a b -- [a - b] )
+native "-", minus
+    pop rax
+    sub [rsp], rax
+    jmp next
+
+; ( a b -- [a * b] )
 native "*", mul
     pop rax
     pop rdx
@@ -25,6 +37,7 @@ native "*", mul
     push rax
     jmp next
 
+; ( a b -- [a / b] )
 native "/", div
     pop rcx
     pop rax
@@ -33,6 +46,7 @@ native "/", div
     push rax
     jmp next
 
+; ( a b-- [a mod b] )
 native "%", mod
     pop rcx
     pop rax
@@ -41,11 +55,8 @@ native "%", mod
     push rdx
     jmp next
 
-native "-", minus
-    pop rax
-    sub [rsp], rax
-    jmp next
 
+; Logic
 native "not", not
     pop rax
     test rax, rax
@@ -54,7 +65,7 @@ native "not", not
     push rax
     jmp next
 
-native "=", equals
+native "==", equals
     pop rax
     pop rdx
     cmp rax, rdx
@@ -72,16 +83,19 @@ native "<", lt
     push rax
     jmp next
 
+; Bitwise and
 native "and", and
     pop rax
     and [rsp], rax
     jmp next
 
+; Bitwise or
 native "or", or
     pop rax
     or [rsp], rax
     jmp next
 
+; Logical and 
 native "land", land
     pop rax
     pop rdx
@@ -93,6 +107,7 @@ native "land", land
     push rax
     jmp next
 
+; Logical or
 native "lor", lor
     pop rax
     pop rdx
@@ -104,10 +119,8 @@ native "lor", lor
     push rax
     jmp next
 
-native "exit", exit
-    rpop pc
-    jmp next
 
+; Operations with return stack
 native ">r", to_r
     pop rax
     rpush rax
@@ -122,54 +135,8 @@ native "r@", r_fetch
     push qword [rstack]
     jmp next
 
-native "docol", docol
-    rpush pc
-    add w, 8
-    mov pc, w
-    jmp next
 
-; ( call_num a1 a2 a3 a4 a5 a6 -- new_rax new_rdx )
-; Executes syscall
-; The following registers store arguments (according to ABI)
-; rdi , rsi , rdx , r10 , r8 and r9
-native "syscall", syscall
-    pop r9
-    pop r8
-    pop r10
-    pop rdx
-    pop rsi
-    pop rdi
-    pop rax
-    syscall
-    push rax
-    push rdx
-    jmp next
-
-
-native "branch", branch
-    mov pc, [pc]
-    jmp next
-
-native "0branch", branch0
-    pop rax
-    test rax, rax
-    jnz .skip
-    mov pc, [pc]
-    jmp next
-    .skip:
-    add pc, 8
-    jmp next
-
-native "lit", lit
-    push qword [pc]
-    add pc, 8
-    jmp next
-
-native "execute", execute
-    pop rax
-    mov w, rax
-    jmp [rax]
-
+; Operations with memory
 native "@", fetch
     pop rax
     push qword[rax]
@@ -193,12 +160,65 @@ native "c@", fetch_char
     push rax
     jmp next
 
+
+; Execution operations 
+native "docol", docol
+    rpush pc
+    add w, 8
+    mov pc, w
+    jmp next
+
+native "execute", execute
+    pop rax
+    mov w, rax
+    jmp [rax]
+
+;( call_num a1 a2 a3 a4 a5 a6 -- new_rax new_rdx )
+; rdi , rsi , rdx , r10 , r8 and r9
+native "syscall", syscall
+    pop r9
+    pop r8
+    pop r10
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
+    syscall
+    push rax
+    push rdx
+    jmp next
+
+
+; Branching
+native "branch", branch
+    mov pc, [pc]
+    jmp next
+
+native "0branch", branch0
+    pop rax
+    test rax, rax
+    jnz .skip
+    mov pc, [pc]
+    jmp next
+    .skip:
+    add pc, 8
+    jmp next
+
+
+native "exit", exit
+    rpop pc
+    jmp next
+
+native "lit", lit
+    push qword [pc]
+    add pc, 8
+    jmp next
+
 native "sp", sp
     push rsp
     jmp next
 
 const "forth-dp", dp
-
 
 native ".", dot
 	push rdi
@@ -209,26 +229,26 @@ native ".", dot
 	call print_newline
     jmp next
 
-native ".S", show_stack
+native "..", show_stack
 	mov rcx, rsp
 	.loop:
-        cmp rcx, [stack_start]
+    cmp rcx, [stack_start]
 		jae next
 		mov rdi, [rcx]
 		push rcx
-     	push rdi
+    push rdi
 		call print_tab
 		pop rdi
 		call print_int
 		call print_newline
 		pop rcx
-        add rcx, 8
-        jmp .loop
+    add rcx, 8
+    jmp .loop
 
 
 section .rodata
 msg:
-  .no_such_word: db "! No such word: ", 0
+  .no_such_word: db "No such word: ", 0
 
 section .bss
 word_buf:  resq 512
@@ -247,202 +267,195 @@ const "forth-is-compiling", state
 const "forth-input-fd", fd
 const "forth-stack-start", stack_start
 
+%define sys_read_no 0
+%define sys_write_no 1
 
+native "forth-stack-restore", forth_stack_restore
+  mov rsp, [stack_start]
+  jmp next
+  
 colon "bye", bye
     dq xt_lit, 60
     TIMES 6 dq xt_lit, 0
     dq xt_syscall
 
-%define sys_read_no 0
-%define sys_write_no 1
-
 colon "sys-read", sys_read
-TIMES 3 dq xt_to_r
-dq xt_lit, sys_read_no
-TIMES 3 dq xt_from_r
-TIMES 3 dq xt_lit, 0
-dq xt_syscall , xt_drop, xt_exit
+    TIMES 3 dq xt_to_r
+    dq xt_lit, sys_read_no
+    TIMES 3 dq xt_from_r
+    TIMES 3 dq xt_lit, 0
+    dq xt_syscall , xt_drop, xt_exit
 
 colon "sys-write", sys_write
-TIMES 3 dq xt_to_r
-dq xt_lit, sys_write_no
-TIMES 3 dq xt_from_r
-TIMES 3 dq xt_lit, 0
-dq xt_syscall , xt_drop, xt_exit
-
+    TIMES 3 dq xt_to_r
+    dq xt_lit, sys_write_no
+    TIMES 3 dq xt_from_r
+    TIMES 3 dq xt_lit, 0
+    dq xt_syscall , xt_drop, xt_exit
 
 colon  "stack-cell", stack_cell
-  dq xt_lit, 0, xt_sp, xt_exit
+    dq xt_lit, 0, xt_sp, xt_exit
 
 ; ( fd - char 1) or ( - 0 )
 colon "file-read-char", file_read_char
-  dq xt_to_r, xt_stack_cell, xt_from_r, xt_swap, xt_lit, 1, xt_sys_read
-	branch0 .fail
-  dq xt_lit, 1
-.fail :
-	dq xt_exit
+    dq xt_to_r, xt_stack_cell, xt_from_r, xt_swap, xt_lit, 1, xt_sys_read
+    branch0 .fail
+    dq xt_lit, 1
+  .fail :
+    dq xt_exit
 
-  ; ( fd char - )
+; ( fd char - )
 colon "file-write-char", file_write_char
-  dq xt_swap, xt_to_r, xt_to_r
-  dq xt_stack_cell, xt_dup, xt_from_r, xt_swap, xt_write_char
-  dq xt_from_r, xt_swap, xt_lit, 1, xt_sys_write, xt_drop, xt_drop, xt_exit
+    dq xt_swap, xt_to_r, xt_to_r
+    dq xt_stack_cell, xt_dup, xt_from_r, xt_swap, xt_write_char
+    dq xt_from_r, xt_swap, xt_lit, 1, xt_sys_write, xt_drop, xt_drop, xt_exit
 
 colon "string-length", string_length
-      dq xt_dup
-.loop:
-      dq xt_dup, xt_fetch_char
-      branch0 .exit
-      dq xt_inc
-      branch .loop
-.exit:
-  dq xt_swap, xt_minus, xt_exit
+    dq xt_dup
+  .loop:
+    dq xt_dup, xt_fetch_char
+    branch0 .exit
+    dq xt_inc
+    branch .loop
+  .exit:
+    dq xt_swap, xt_minus, xt_exit
 
 colon "print-cr", print_cr
-  dq xt_lit, 1, xt_lit, 10, xt_file_write_char, xt_exit
+    dq xt_lit, 1, xt_lit, 10, xt_file_write_char, xt_exit
 
 ;  ( str count - )
 colon "print-string-counted", print_string_counted
-  dq xt_to_r, xt_to_r, xt_lit, 1, xt_from_r, xt_from_r, xt_sys_write, xt_drop, xt_exit
+    dq xt_to_r, xt_to_r, xt_lit, 1, xt_from_r, xt_from_r, xt_sys_write, xt_drop, xt_exit
 
 ; ( str -- )
 colon "print-string", print_string
-  dq xt_dup, xt_string_length, xt_print_string_counted, xt_exit
+   dq xt_dup, xt_string_length, xt_print_string_counted, xt_exit
 
 colon "char-is-space", char_is_space
-  dq xt_to_r
-  dq xt_r_fetch, xt_lit,  ' ', xt_equals
-  dq xt_r_fetch, xt_lit, 10, xt_equals, xt_lor
-  dq xt_r_fetch, xt_lit, 13, xt_equals, xt_lor
-  dq xt_from_r,  xt_lit, '\t', xt_equals, xt_lor, xt_exit
+    dq xt_to_r
+    dq xt_r_fetch, xt_lit,  ' ', xt_equals
+    dq xt_r_fetch, xt_lit, 10, xt_equals, xt_lor
+    dq xt_r_fetch, xt_lit, 13, xt_equals, xt_lor
+    dq xt_from_r,  xt_lit, '\t', xt_equals, xt_lor, xt_exit
 
-  ; ( addr - )
+; ( addr - )
 colon "string-terminate", string_terminate
-  dq xt_lit, 0, xt_swap, xt_write_char, xt_exit
+    dq xt_lit, 0, xt_swap, xt_write_char, xt_exit
 
 ;  ( fd buffer -  )
 colon "file-read-word", file_read_word
-  dq xt_dup, xt_to_r, xt_to_r
+    dq xt_dup, xt_to_r, xt_to_r
 
 .read_space:
-  dq xt_dup, xt_file_read_char
-  branch0 .eof
-
-  dq xt_dup, xt_char_is_space
-  branch0 .commit
-
-  dq xt_drop
-  branch .read_space
-
-.read:
-  dq xt_dup, xt_file_read_char
-  branch0 .eof
-
-  dq xt_dup, xt_char_is_space, xt_not
-  branch0 .end
-
-.commit:
-  dq xt_r_fetch, xt_write_char
-  dq xt_from_r, xt_inc, xt_to_r
-  branch .read
-
-.end:
-  dq xt_drop
-.eof:
-  dq xt_drop, xt_r_fetch, xt_string_terminate
-  dq xt_from_r, xt_from_r, xt_minus, xt_exit
+    dq xt_dup, xt_file_read_char
+    branch0 .eof
+    dq xt_dup, xt_char_is_space
+    branch0 .commit
+    dq xt_drop
+    branch .read_space
+  .read:
+    dq xt_dup, xt_file_read_char
+    branch0 .eof
+    dq xt_dup, xt_char_is_space, xt_not
+    branch0 .end
+  .commit:
+    dq xt_r_fetch, xt_write_char
+    dq xt_from_r, xt_inc, xt_to_r
+    branch .read
+  .end:
+    dq xt_drop
+  .eof:
+    dq xt_drop, xt_r_fetch, xt_string_terminate
+    dq xt_from_r, xt_from_r, xt_minus, xt_exit
 
 
 
 colon ",", comma
-  dq xt_here, xt_fetch, xt_write
-  dq xt_here, xt_fetch, xt_lit, 8, xt_plus
-  dq xt_here, xt_write, xt_exit
+    dq xt_here, xt_fetch, xt_write
+    dq xt_here, xt_fetch, xt_lit, 8, xt_plus
+    dq xt_here, xt_write, xt_exit
 
 colon "c,", char_comma
-  dq xt_here, xt_fetch, xt_write_char
-  dq xt_here, xt_fetch, xt_inc
-  dq xt_here, xt_write, xt_exit
+    dq xt_here, xt_fetch, xt_write_char
+    dq xt_here, xt_fetch, xt_inc
+    dq xt_here, xt_write, xt_exit
 
-colon "2dup", ddup
-  dq xt_to_r, xt_dup, xt_r_fetch, xt_swap, xt_from_r, xt_exit
+colon "dup2", ddup
+    dq xt_to_r, xt_dup, xt_r_fetch, xt_swap, xt_from_r, xt_exit
 
-colon "2inc", dinc
-  dq xt_to_r, xt_inc, xt_from_r, xt_inc, xt_exit
+colon "inc2", dinc
+    dq xt_to_r, xt_inc, xt_from_r, xt_inc, xt_exit
 
 colon "string-equals", string_equals
-.start:
-  dq xt_ddup, xt_fetch_char, xt_swap, xt_fetch_char, xt_equals
-  branch0 .no
-  dq xt_dup, xt_fetch_char
-  branch0 .yes
-  dq xt_dinc
-  branch .start
-.yes:
-  dq xt_drop, xt_drop, xt_lit, 1, xt_exit
-.no:
-  dq xt_drop, xt_drop, xt_lit, 0, xt_exit
+  .start:
+    dq xt_ddup, xt_fetch_char, xt_swap, xt_fetch_char, xt_equals
+    branch0 .no
+    dq xt_dup, xt_fetch_char
+    branch0 .yes
+    dq xt_dinc
+    branch .start
+  .yes:
+    dq xt_drop, xt_drop, xt_lit, 1, xt_exit
+  .no:
+    dq xt_drop, xt_drop, xt_lit, 0, xt_exit
 
 colon "forth-dict-word-name", forth_dict_word_name
-  dq xt_lit, 9, xt_plus, xt_exit
+   dq xt_lit, 9, xt_plus, xt_exit
 
 colon "forth-find-word", forth_find_word
-  dq xt_to_r, xt_last_word, xt_fetch
-  dq xt_state, xt_fetch
-  branch0 .loop
-  dq xt_fetch
-.loop:
-  dq xt_dup
-  branch0 .not_found
-
-  dq xt_dup, xt_forth_dict_word_name, xt_r_fetch, xt_string_equals, xt_not
-  branch0 .found
-
-  dq xt_fetch
-  branch .loop
-.found:
-  dq xt_lit, 1
-.not_found:
-  dq xt_from_r, xt_drop, xt_exit
+    dq xt_to_r, xt_last_word, xt_fetch
+    dq xt_state, xt_fetch
+    branch0 .loop
+    dq xt_fetch
+  .loop:
+    dq xt_dup
+    branch0 .not_found
+    dq xt_dup, xt_forth_dict_word_name, xt_r_fetch, xt_string_equals, xt_not
+    branch0 .found
+    dq xt_fetch
+    branch .loop
+  .found:
+    dq xt_lit, 1
+  .not_found:
+    dq xt_from_r, xt_drop, xt_exit
 
 colon "'", forth_tick, 1
-  dq xt_fd, xt_fetch, xt_lit, word_buf, xt_file_read_word
-  branch0 .eof
-  dq xt_lit, word_buf, xt_forth_find_word
-  branch0 .no_word
-  dq xt_forth_cfa, xt_state
-  branch0 .interp
-  dq xt_lit, xt_lit, xt_comma, xt_comma
-.interp:
-  dq xt_exit
-.no_word:
-  dq xt_lit, msg.no_such_word, xt_print_string, xt_print_string, xt_print_cr, xt_exit
-  .eof:
-  dq xt_drop, xt_exit
+    dq xt_fd, xt_fetch, xt_lit, word_buf, xt_file_read_word
+    branch0 .eof
+    dq xt_lit, word_buf, xt_forth_find_word
+    branch0 .no_word
+    dq xt_forth_cfa, xt_state
+    branch0 .interp
+    dq xt_lit, xt_lit, xt_comma, xt_comma
+  .interp:
+    dq xt_exit
+  .no_word:
+    dq xt_lit, msg.no_such_word, xt_print_string, xt_print_string, xt_print_cr, xt_exit
+    .eof:
+    dq xt_drop, xt_exit
 
 colon "forth-cfa", forth_cfa
-  dq xt_lit, 9, xt_plus
-  dq xt_dup, xt_string_length, xt_plus
-  dq xt_lit, 2, xt_plus, xt_exit
+    dq xt_lit, 9, xt_plus
+    dq xt_dup, xt_string_length, xt_plus
+    dq xt_lit, 2, xt_plus, xt_exit
 
-; ( dest source - )
 colon "string-copy", string_copy
-.loop:
-dq xt_ddup, xt_fetch_char, xt_to_r, xt_r_fetch, xt_swap, xt_write_char
-dq xt_dinc, xt_from_r, xt_not
-  branch0 .loop
-  dq xt_drop, xt_drop, xt_exit
+  .loop:
+    dq xt_ddup, xt_fetch_char, xt_to_r, xt_r_fetch, xt_swap, xt_write_char
+    dq xt_dinc, xt_from_r, xt_not
+    branch0 .loop
+    dq xt_drop, xt_drop, xt_exit
 
 ; ( flags name - )
 colon "forth-create", forth_create
-  dq xt_here, xt_fetch                ; word start
-  dq xt_last_word, xt_fetch, xt_comma ; fill `link`
-  dq xt_last_word, xt_write           ; update `last_word`
-  dq xt_lit, 0, xt_char_comma
-  dq xt_dup, xt_here, xt_fetch, xt_swap, xt_string_copy
-  dq xt_string_length, xt_here, xt_fetch, xt_plus, xt_inc, xt_here, xt_write
-  dq xt_char_comma
-  dq xt_exit
+    dq xt_here, xt_fetch                ; word start
+    dq xt_last_word, xt_fetch, xt_comma ; fill `link`
+    dq xt_last_word, xt_write           ; update `last_word`
+    dq xt_lit, 0, xt_char_comma
+    dq xt_dup, xt_here, xt_fetch, xt_swap, xt_string_copy
+    dq xt_string_length, xt_here, xt_fetch, xt_plus, xt_inc, xt_here, xt_write
+    dq xt_char_comma
+    dq xt_exit
 
 colon ":", colon
   .restart:
@@ -457,68 +470,66 @@ colon ";", semicolon, 1
     dq xt_lit, xt_exit, xt_comma, xt_exit
 
 colon "char-is-digit", char_is_digit
-  dq xt_to_r
-  dq xt_r_fetch, xt_lit, '9'+1, xt_lt
-  dq xt_lit, '0'-1, xt_r_fetch, xt_lt, xt_land
-  dq xt_from_r, xt_drop, xt_exit
+    dq xt_to_r
+    dq xt_r_fetch, xt_lit, '9'+1, xt_lt
+    dq xt_lit, '0'-1, xt_r_fetch, xt_lt, xt_land
+    dq xt_from_r, xt_drop, xt_exit
 
 colon "drop0", drop0
-  dq xt_dup
-  branch0 .is_zero
-  dq xt_exit
+    dq xt_dup
+    branch0 .is_zero
+    dq xt_exit
   .is_zero:
-  dq xt_drop, xt_exit
+    dq xt_drop, xt_exit
 
 colon "char-to-digit", char_to_digit
-  dq xt_lit, '0', xt_minus, xt_exit
+    dq xt_lit, '0', xt_minus, xt_exit
 
 ; ( buf -- num? len )
 colon "string-parse-unsigned-number", string_parse_unsigned_number
-  dq xt_dup, xt_to_r
-  dq xt_lit, 0, xt_to_r
-.loop:
-  dq xt_dup, xt_fetch_char, xt_dup, xt_char_is_digit
-  branch0 .end
-  dq xt_char_to_digit
-  dq xt_lit, 10, xt_from_r, xt_mul, xt_plus, xt_to_r
-  dq xt_inc
-  branch .loop
+    dq xt_dup, xt_to_r
+    dq xt_lit, 0, xt_to_r
+  .loop:
+    dq xt_dup, xt_fetch_char, xt_dup, xt_char_is_digit
+    branch0 .end
+    dq xt_char_to_digit
+    dq xt_lit, 10, xt_from_r, xt_mul, xt_plus, xt_to_r
+    dq xt_inc
+    branch .loop
   .end:
-  dq xt_drop, xt_from_r, xt_swap, xt_from_r, xt_minus, xt_drop0, xt_exit
+    dq xt_drop, xt_from_r, xt_swap, xt_from_r, xt_minus, xt_drop0, xt_exit
 
 colon "neg", neg
-  dq xt_lit, 0, xt_swap, xt_minus, xt_exit
+   dq xt_lit, 0, xt_swap, xt_minus, xt_exit
 
 colon "inc", inc
-  dq xt_lit, 1, xt_plus, xt_exit
+    dq xt_lit, 1, xt_plus, xt_exit
 
 ; ( buf -- num? len )
 colon "string-parse-number", string_parse_number
-  dq xt_dup, xt_fetch_char, xt_dup, xt_char_is_digit, xt_not
-  branch0 .unsigned
-  dq xt_dup, xt_lit, '-', xt_equals, xt_not
-  branch0 .negative
-
-  dq xt_dup, xt_lit, '+', xt_equals, xt_not
-  branch0 .positive
-
-.negative:
-  dq xt_drop
-  dq xt_inc, xt_string_parse_unsigned_number
-  dq xt_dup
-  branch0 .error
-  dq xt_inc
-  dq xt_swap, xt_neg, xt_swap, xt_exit
-.positive:
-  dq xt_drop
-  dq xt_inc, xt_string_parse_unsigned_number
-  dq xt_dup
-  branch0 .error
-  dq xt_inc, xt_exit
-.unsigned:
-  dq xt_drop, xt_string_parse_unsigned_number, xt_exit
-.error:
-  dq xt_drop, xt_lit, 0, xt_exit
+    dq xt_dup, xt_fetch_char, xt_dup, xt_char_is_digit, xt_not
+    branch0 .unsigned
+    dq xt_dup, xt_lit, '-', xt_equals, xt_not
+    branch0 .negative
+    dq xt_dup, xt_lit, '+', xt_equals, xt_not
+    branch0 .positive
+  .negative:
+    dq xt_drop
+    dq xt_inc, xt_string_parse_unsigned_number
+    dq xt_dup
+    branch0 .error
+    dq xt_inc
+    dq xt_swap, xt_neg, xt_swap, xt_exit
+  .positive:
+    dq xt_drop
+    dq xt_inc, xt_string_parse_unsigned_number
+    dq xt_dup
+    branch0 .error
+    dq xt_inc, xt_exit
+  .unsigned:
+    dq xt_drop, xt_string_parse_unsigned_number, xt_exit
+  .error:
+    dq xt_drop, xt_lit, 0, xt_exit
 
 colon "forth-follows-branch", forth_follows_branch
     dq xt_here, xt_fetch, xt_lit, 8, xt_minus, xt_fetch
@@ -529,16 +540,12 @@ colon "forth-follows-branch", forth_follows_branch
 colon "forth-interpret-fd", forth_interpret_fd
     dq xt_lit, xt_fd, xt_fetch, xt_to_r
     dq xt_fd, xt_write
-
-    .loop:
+  .loop:
     dq xt_fd, xt_fetch, xt_lit, word_buf, xt_file_read_word
     branch0 .eof
-
     dq xt_lit, word_buf, xt_forth_interpret
-
     branch .loop
-
-    .eof:
+  .eof:
     dq xt_from_r, xt_fd, xt_write, xt_exit
 
 colon "forth-xt-is-immediate", forth_xt_is_immediate
@@ -546,55 +553,49 @@ colon "forth-xt-is-immediate", forth_xt_is_immediate
 
 ; ( str - )
 colon "forth-interpret", forth_interpret
-.start:
+  .start:
     ; ( inbuf )
     dq xt_dup, xt_forth_find_word         ; find in dict
     branch0 .number                       ; ( inbuf dictaddr? 0/1 )
     dq xt_swap, xt_drop, xt_forth_cfa     ; ( xt )
-
     ; if not compiling
     dq xt_state, xt_fetch
     branch0 .interpreting
-
     dq xt_dup, xt_forth_xt_is_immediate, xt_not
     branch0 .interpreting
 
-.compiling:
-    dq xt_comma, xt_exit
-.interpreting:
-    dq xt_execute, xt_exit
+  .compiling:
+      dq xt_comma, xt_exit
 
-.number: ; ( inbuf )
-    dq xt_dup, xt_string_parse_number      ; ( inbuf num? 0/len )
-    branch0 .no_word
+  .interpreting:
+      dq xt_execute, xt_exit
 
-    ; ( inbuf num )
-    dq xt_swap, xt_drop
-    dq xt_state, xt_fetch                  ; if interpreting, that's it
-    branch0 .exit
+  .number: ; ( inbuf )
+      dq xt_dup, xt_string_parse_number      ; ( inbuf num? 0/len )
+      branch0 .no_word
 
-    dq xt_forth_follows_branch, xt_not
-    branch0 .is_branch
+      ; ( inbuf num )
+      dq xt_swap, xt_drop
+      dq xt_state, xt_fetch                  ; if interpreting, that's it
+      branch0 .exit
 
-.not_branch:
-    dq xt_lit, xt_lit, xt_comma
-.is_branch: ; ( num prev_xt )
-    dq xt_comma, xt_exit
+      dq xt_forth_follows_branch, xt_not
+      branch0 .is_branch
 
-.no_word: ; ( inbuf )
-  dq xt_lit, msg.no_such_word, xt_print_string, xt_print_string, xt_print_cr
+  .not_branch:
+      dq xt_lit, xt_lit, xt_comma
 
-.exit:
-    dq xt_exit
+  .is_branch: ; ( num prev_xt )
+      dq xt_comma, xt_exit
 
-native "forth-stack-restore", forth_stack_restore
-  mov rsp, [stack_start]
-  jmp next
+  .no_word: ; ( inbuf )
+    dq xt_lit, msg.no_such_word, xt_print_string, xt_print_string, xt_print_cr
+
+  .exit:
+      dq xt_exit
 
 colon "trap", trap
     dq xt_lit, wh_trap + 9, xt_print_string, xt_print_cr, xt_exit
 
 forth_init:
     dq xt_lit, 0, xt_forth_interpret_fd, xt_bye
-
-
