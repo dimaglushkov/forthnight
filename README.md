@@ -1,13 +1,4 @@
-```
-███████╗ ██████╗ ██████╗ ████████╗██╗  ██╗███╗   ██╗██╗ ██████╗ ██╗  ██╗████████╗
-██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝██║  ██║████╗  ██║██║██╔════╝ ██║  ██║╚══██╔══╝
-█████╗  ██║   ██║██████╔╝   ██║   ███████║██╔██╗ ██║██║██║  ███╗███████║   ██║   
-██╔══╝  ██║   ██║██╔══██╗   ██║   ██╔══██║██║╚██╗██║██║██║   ██║██╔══██║   ██║   
-██║     ╚██████╔╝██║  ██║   ██║   ██║  ██║██║ ╚████║██║╚██████╔╝██║  ██║   ██║   
-╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   
-```                                                                                                                                                     
-                                                                                                                                                                
-**ForthNight is a simple forth dialect and interpretator.**
+## Forthnight 
+Forthnight is a simple forth dialect. Created as a part of System-Software course.
 
-Created as a part of 'System-software' course in ITMO University, which was created by [Igor Jirkov](https://github.com/sayon/) and this exact version was inspired by his [forthress](https://github.com/sayon/forthress).
-
+Inspired by Igor Jirkov's [forthress](https://github.com/sayon/forthress).
